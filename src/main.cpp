@@ -70,12 +70,11 @@ namespace {
 
             auto f = [this](const Vec& vec) noexcept -> Vec {
                 const float sin1 = std::sin(vec.x1), sin2 = std::sin(vec.x3), sinV = std::sin(vec.x1 - vec.x3), cosV = std::cos(vec.x1 - vec.x3);
-                const float& a = rect_pend.a, &b = rect_pend.b, &r = circle_pend.radius, &p1 = rect_pend.angular_velocity, &p2 = rect_pend.angular_velocity;
+                const float& a = rect_pend.a, &b = rect_pend.b, &r = circle_pend.radius;
                 const float sqrt_ab = std::sqrt(a * a + b * b);
-                const float f2 = (-1.5 * a * b * gravity * sin1 - 2 * M_PI * r * r * cosV * (p1 * p1 * sqrt_ab * sinV - gravity * sin2) 
-                        - 3 * p2 * p2 * M_PI * r * r * r * sinV - 3 * gravity * M_PI * r * r * sin1) / (sqrt_ab * (a * b + 2 * M_PI * r * r * sinV * sinV + M_PI * r * r));
-                const float f4 = (cosV * (a * b * gravity * sin1 + 2 * p2 * p2 * M_PI * r * r * r * sinV + 2 * gravity * M_PI * r * r * sin1) 
-                        + (2.0 * a * b / 3.0 + 2 * M_PI * r * r) * (p1 * p1 * sqrt_ab * sinV - gravity * sin2)) / (r * (a * b + 2 * M_PI * r * r * sinV * sinV + M_PI * r));
+
+                const float f2 = -(3.0 * a * b * gravity * sin1 / 2.0 + 2 * M_PI * r * r * cosV * (vec.x2 * vec.x2 * sqrt_ab * sinV - gravity * sin2) + 3.0 * vec.x4 * vec.x4 * M_PI * r * r * r * sinV + 3.0 * gravity * M_PI * r * r * sin1) / (sqrt_ab * (a * b + 2.0 * M_PI * r * r * sinV * sinV + M_PI * r * r));
+                const float f4 = ((2.0 * a * b / 3.0 + 2.0 * M_PI * r * r) * (vec.x2 * vec.x2 * sqrt_ab * sinV - gravity * sin2) + cosV * (a * b * gravity * sin1 + 2.0 * vec.x4 * vec.x4 * M_PI * r * r * r * sinV + 2.0 * gravity * M_PI * r * r * sin1)) / (r * (a * b + 2.0 * M_PI * r * r * sinV * sinV + M_PI * r * r));
                 return {vec.x2, f2, vec.x4, f4};
             };
 
