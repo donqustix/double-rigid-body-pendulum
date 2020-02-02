@@ -4,25 +4,22 @@
 #include <cmath>
 
 namespace {
-    void DrawCircle(SDL_Renderer* renderer, int centreX, int centreY, int radius) noexcept
-    {
+    void DrawCircle(SDL_Renderer* renderer, int centreX, int centreY, int radius) noexcept {
        const int diameter = radius * 2;
-
-       int x = (radius - 1);
+       int x = radius - 1;
        int y = 0;
        int tx = 1;
        int ty = 1;
-       int error = (tx - diameter);
-
+       int error = tx - diameter;
        while (x >= y) {
-          const SDL_Point points[]{{centreX + x, centreY - y},
-                                   {centreX + x, centreY + y},
-                                   {centreX - x, centreY - y},
-                                   {centreX - x, centreY + y},
-                                   {centreX + y, centreY - x},
-                                   {centreX + y, centreY + x},
-                                   {centreX - y, centreY - x},
-                                   {centreX - y, centreY + x}};
+           const SDL_Point points[]{{centreX + x, centreY - y},
+                                    {centreX + x, centreY + y},
+                                    {centreX - x, centreY - y},
+                                    {centreX - x, centreY + y},
+                                    {centreX + y, centreY - x},
+                                    {centreX + y, centreY + x},
+                                    {centreX - y, centreY - x},
+                                    {centreX - y, centreY + x}};
           ::SDL_RenderDrawPoints(renderer, points, 8);
           if (error <= 0) {
              ++y;
@@ -32,7 +29,7 @@ namespace {
           if (error > 0) {
              --x;
              tx += 2;
-             error += (tx - diameter);
+             error += tx - diameter;
           }
        }
     }
@@ -53,7 +50,7 @@ namespace {
 
         float gravity = 9.8;
 
-        void update(int dt) {
+        void update(int dt) noexcept {
             struct Vec {
                 float x1, x2, x3, x4;
                 Vec& operator+=(const Vec& vec) noexcept {
@@ -72,7 +69,6 @@ namespace {
                 const float sin1 = std::sin(vec.x1), sin2 = std::sin(vec.x3), sinV = std::sin(vec.x1 - vec.x3), cosV = std::cos(vec.x1 - vec.x3);
                 const float& a = rect_pend.a, &b = rect_pend.b, &r = circle_pend.radius;
                 const float sqrt_ab = std::sqrt(a * a + b * b);
-
                 const float f2 = -(3.0 * a * b * gravity * sin1 / 2.0 + 2 * M_PI * r * r * cosV * (vec.x2 * vec.x2 * sqrt_ab * sinV - gravity * sin2) + 3.0 * vec.x4 * vec.x4 * M_PI * r * r * r * sinV + 3.0 * gravity * M_PI * r * r * sin1) / (sqrt_ab * (a * b + 2.0 * M_PI * r * r * sinV * sinV + M_PI * r * r));
                 const float f4 = ((2.0 * a * b / 3.0 + 2.0 * M_PI * r * r) * (vec.x2 * vec.x2 * sqrt_ab * sinV - gravity * sin2) + cosV * (a * b * gravity * sin1 + 2.0 * vec.x4 * vec.x4 * M_PI * r * r * r * sinV + 2.0 * gravity * M_PI * r * r * sin1)) / (r * (a * b + 2.0 * M_PI * r * r * sinV * sinV + M_PI * r * r));
                 return {vec.x2, f2, vec.x4, f4};
@@ -81,7 +77,7 @@ namespace {
             static constexpr float h = 0.025;
 
             static constexpr float ms_per_step = 1000.0 / 80.0;
-            static float t = .0;
+            static int t = 0;
 
             for (t += dt; t >= ms_per_step; t -= ms_per_step) {
                 const Vec y0{rect_pend.angle, rect_pend.angular_velocity, circle_pend.angle, circle_pend.angular_velocity};
@@ -101,6 +97,7 @@ namespace {
         }
 
         void render(SDL_Renderer* renderer, int x, int y, int scale) const noexcept {
+
             const int proj_a_x = -rect_pend.a * std::cos(rect_pend.angle) * scale;
             const int proj_a_y =  rect_pend.a * std::sin(rect_pend.angle) * scale;
 
@@ -126,35 +123,35 @@ namespace {
 
 int main() {
     try {
-        struct SDL {
+        const struct SDL {
             SDL() {
                 if (::SDL_Init(SDL_INIT_VIDEO) < 0)
                     throw std::runtime_error(::SDL_GetError());
             }
             ~SDL() {::SDL_Quit();}
         } sdl;
-        struct Window {
-            SDL_Window* const handle;
+        const struct Window {
+            SDL_Window* handle;
             Window() : handle{::SDL_CreateWindow("Pendulum", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN)} {
                 if (!handle)
                     throw std::runtime_error{::SDL_GetError()};
             }
             ~Window() {::SDL_DestroyWindow(handle);}
         } window; 
-        struct Renderer {
-            SDL_Renderer* const handle;
+        const struct Renderer {
+            SDL_Renderer* handle;
             Renderer(const Window& window) : handle{::SDL_CreateRenderer(window.handle, -1, SDL_RENDERER_ACCELERATED)} {
                 if (!handle)
                     throw std::runtime_error{::SDL_GetError()};
             }
             ~Renderer() {::SDL_DestroyRenderer(handle);}
         } renderer{window};
+
         Scene scene;
+
         for (bool running = true; running;) {
             static constexpr int frames_per_second = 60;
             static constexpr int ms_per_frame = 1000 / frames_per_second;
-
-            static int t = 0;
 
             static Uint32 t0 = ::SDL_GetTicks();
 
@@ -167,7 +164,9 @@ int main() {
             const Uint32 t1 = ::SDL_GetTicks();
             const Uint32 dt = t1 - t0;
 
-            for (t += dt; t > ms_per_frame; t -= dt)
+            static int t = 0;
+
+            for (t += dt; t >= ms_per_frame; t -= dt)
                 scene.update(dt);
 
             t0 = t1;

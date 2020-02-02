@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -pedantic -Wall -Wextra -Isrc
+CXXFLAGS = -std=c++17 -pedantic -Wall -Wextra -DNDEBUG -O2 -Isrc -march=native -mtune=native
 LDFLAGS = -lSDL2
 
 PROJECT_NAME = pendulum
